@@ -63,17 +63,20 @@ extension UIButton {
 
         dispatch_once(&Static.token) {
             
-            let originalSelector = #selector(UIControl.sendAction(_:to:forEvent:))
+            let originalSelector = #selector(UIButton.sendAction(_:to:forEvent:))
             let swizzledSelector = #selector(UIButton.my_sendAction(_:to:forEvent:))
             
             let originalMethod = class_getInstanceMethod(self, originalSelector)
             let swizzledMethod = class_getInstanceMethod(self, swizzledSelector)
             
+            // 运行时为类添加我们自己写的my_sendAction(_:to:forEvent:)
             let didAddMethod = class_addMethod(self, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod))
             
             if didAddMethod {
+                // 如果添加成功，则交换方法
                 class_replaceMethod(self, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod))
             } else {
+                // 如果添加失败，则交换方法的具体实现
                 method_exchangeImplementations(originalMethod, swizzledMethod)
             }
             
